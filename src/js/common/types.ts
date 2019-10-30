@@ -18,6 +18,7 @@
 import { Observable } from 'rxjs';
 import { Action } from 'kombo';
 
+export type LMap<V> = {[key:number]:V}|{[key:string]:V};
 
 export type AnyInterface<T> = {
     [P in keyof T]: T[P];

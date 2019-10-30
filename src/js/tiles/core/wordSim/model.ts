@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { StatelessModel, IActionDispatcher, Action, SEDispatcher } from 'kombo';
-import * as Immutable from 'immutable';
 import { ActionName as GlobalActionName, Actions as GlobalActions } from '../../../models/actions';
 import { DataLoadedPayload } from './actions';
 import { ActionName, Actions } from './actions';
 import { findCurrLemmaVariant } from '../../../models/query';
-import { WordSimApi, WordSimWord } from '../../../common/api/abstract/wordSim';
+import { WordSimApi } from '../../../common/api/abstract/wordSim';
 import { WordSimModelState } from '../../../common/models/wordSim';
 import { RecognizedQueries } from '../../../common/query';
 
@@ -94,11 +92,11 @@ export class WordSimModel extends StatelessModel<WordSimModelState> {
                     const newState = this.copyState(state);
                     newState.isBusy = false;
                     if (action.error) {
-                        newState.data = Immutable.List<WordSimWord>();
+                        newState.data = [];
                         newState.error = action.error.message;
 
                     } else {
-                        newState.data = Immutable.List<WordSimWord>(action.payload.words);
+                        newState.data = action.payload.words;
                     }
                     return newState;
                 }
@@ -109,7 +107,7 @@ export class WordSimModel extends StatelessModel<WordSimModelState> {
                     const newState = this.copyState(state);
                     newState.isBusy = true;
                     newState.operationMode = action.payload.value;
-                    newState.data = Immutable.List<WordSimWord>();
+                    newState.data = [];
                     return newState;
                 }
                 return state;

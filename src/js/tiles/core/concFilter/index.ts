@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { IActionDispatcher, StatelessModel } from 'kombo';
 import { Observable, of as rxOf } from 'rxjs';
 
@@ -98,14 +97,13 @@ export class ConcFilterTile implements ITileProvider {
                 widthFract: widthFract,
                 corpName: conf.corpname,
                 otherCorpname: conf.parallelLangMapping ? conf.parallelLangMapping[lang2] : null,
-                posAttrs: Immutable.List<string>(conf.posAttrs),
-                lines: Immutable.List<Line>(),
+                posAttrs: conf.posAttrs,
+                lines: [],
                 viewMode: ViewMode.SENT,
                 attrVmode: 'mouseover',
                 itemsPerSrc: 1,
                 visibleMetadataLine: -1,
-                metadataAttrs: Immutable.List<{value:string; label:string}>(
-                    (conf.metadataAttrs || []).map(v => ({value: v.value, label: appServices.importExternalMessage(v.label)})) || [])
+                metadataAttrs: (conf.metadataAttrs || []).map(v => ({value: v.value, label: appServices.importExternalMessage(v.label)})) || []
             }
         );
         this.label = appServices.importExternalMessage(conf.label || 'collexamples__main_label');

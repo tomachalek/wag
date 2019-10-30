@@ -17,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { Action, SEDispatcher, StatelessModel, IActionQueue } from 'kombo';
 import { Observable } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
@@ -49,7 +48,7 @@ export interface ConcordanceTileState extends ConcordanceMinState {
     isTweakMode:boolean;
     isMobile:boolean;
     widthFract:number;
-    lines:Immutable.List<Line>;
+    lines:Array<Line>;
     currPage:number;
     concsize:number;
     numPages:number;
@@ -149,7 +148,7 @@ export class ConcordanceTileModel extends StatelessModel<ConcordanceTileState> {
                         // debug:
                         action.payload.data.messages.forEach(msg => console.log(`${importMessageType(msg[0]).toUpperCase()}: conc - ${msg[1]}`));
 
-                        newState.lines = Immutable.List<Line>(normalizeTypography(action.payload.data.lines));
+                        newState.lines = normalizeTypography(action.payload.data.lines);
                         newState.concsize = action.payload.data.concsize; // TODO fullsize?
                         newState.resultARF = action.payload.data.arf;
                         newState.resultIPM = action.payload.data.ipm;
@@ -304,7 +303,7 @@ export class ConcordanceTileModel extends StatelessModel<ConcordanceTileState> {
                 }
             break;
             case GlobalActionName.SetScreenMode:
-                if (state.lines.size > 0) {
+                if (state.lines.length > 0) {
                     this.reloadData(state, dispatch, null);
                 }
             break;

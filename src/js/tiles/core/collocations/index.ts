@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { IActionDispatcher, StatelessModel } from 'kombo';
 
 import { AppServices } from '../../../appServices';
@@ -98,7 +97,7 @@ export class CollocationsTile implements ITileProvider {
                 minLocalAbsFreq: conf.minLocalFreq,
                 appliedMetrics: [CollocMetric.LOG_DICE, CollocMetric.MI, CollocMetric.T_SCORE],
                 sortByMetric: CollocMetric.LOG_DICE,
-                data: Immutable.List<DataRow>(),
+                data: [],
                 heading: [],
                 citemsperpage: conf.maxItems ? conf.maxItems : 10,
                 backlink: null

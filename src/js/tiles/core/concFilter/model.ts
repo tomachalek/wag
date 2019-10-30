@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as R from 'ramda';
 import { map, concatMap } from 'rxjs/operators';
 import { StatelessModel, Action, SEDispatcher, IActionQueue } from 'kombo';
-import * as Immutable from 'immutable';
 
 import { AppServices } from '../../../appServices';
 import { ActionName as GlobalActionName, Actions as GlobalActions } from '../../../models/actions';
@@ -32,6 +32,7 @@ import { Actions, ActionName } from './actions';
 import { normalizeTypography } from '../../../common/models/concordance/normalize';
 import { ISwitchMainCorpApi } from '../../../common/api/abstract/switchMainCorp';
 import { isCollocSubqueryPayload, CollocSubqueryValue } from '../../../common/api/abstract/collocations';
+import { LMap } from '../../../common/types';
 
 
 export interface ConcFilterModelState {
@@ -42,14 +43,20 @@ export interface ConcFilterModelState {
     error:string;
     corpName:string;
     otherCorpname:string|null;
-    posAttrs:Immutable.List<string>;
+    posAttrs:Array<string>;
     attrVmode:'mouseover';
     viewMode:ViewMode;
     itemsPerSrc:number;
-    lines:Immutable.List<Line>;
-    metadataAttrs:Immutable.List<{value:string; label:string}>;
+    lines:Array<Line>;
+    metadataAttrs:Array<{value:string; label:string}>;
     visibleMetadataLine:number;
 }
+
+
+type TileWaitRecord = string|Array<SubQueryItem<CollocSubqueryValue>>|null;
+
+const x = R.map<number, [number, TileWaitRecord]>(v => [v, null]);
+const y = R.pipe(x, (v) => R.fromPairs<TileWaitRecord>(v));
 
 
 export class ConcFilterModel extends StatelessModel<ConcFilterModelState> {
@@ -62,9 +69,9 @@ export class ConcFilterModel extends StatelessModel<ConcFilterModelState> {
 
     private readonly tileId:number;
 
-    private waitingForTiles:Immutable.Map<number, string|Array<SubQueryItem<CollocSubqueryValue>>|null>;
+    private waitingForTiles:LMap<TileWaitRecord>;
 
-    private subqSourceTiles:Immutable.Set<number>;
+    private subqSourceTiles:Set<number>;
 
     private numPendingSources:number;
 
@@ -74,7 +81,10 @@ export class ConcFilterModel extends StatelessModel<ConcFilterModelState> {
         this.tileId = tileId;
         this.api = api;
         this.switchMainCorpApi = switchMainCorpApi;
-        this.waitingForTiles = Immutable.Map<number, string|Array<SubQueryItem<CollocSubqueryValue>>|null>(waitForTiles.map(v => [v, null]));
+        this.waitingForTiles = R.pipe(
+            R.map<number, [number, TileWaitRecord]>(v => [v, null]),
+            R.fromPairs
+        )(waitForTiles);
         this.subqSourceTiles = Immutable.Set<number>(subqSourceTiles);
         this.numPendingSources = 0; // this cannot be part of the state (see occurrences in the 'suspend' fn)
         this.appServices = appServices;

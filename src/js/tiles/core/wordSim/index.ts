@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { IActionDispatcher, StatelessModel } from 'kombo';
 
 import { TileConf, ITileProvider, TileFactory, TileComponent } from '../../../common/tile';
@@ -26,7 +25,6 @@ import { QueryType } from '../../../common/query';
 import { createWordSimApiInstance } from './apiFactory';
 import { OperationMode } from '../../../common/models/wordSim';
 import { WordSimApi } from '../../../common/api/abstract/wordSim';
-import { SourceDetails } from '../../../common/types';
 
 
 declare var require:(src:string)=>void;  // webpack
@@ -84,7 +82,7 @@ export class WordSimTile implements ITileProvider {
                 isAltViewMode: false,
                 error: null,
                 isTweakMode: false,
-                data: Immutable.List<any>(),
+                data: [],
                 maxResultItems: conf.maxResultItems,
                 operationMode: OperationMode.MeansLike,
                 corpus: conf.corpname || '',

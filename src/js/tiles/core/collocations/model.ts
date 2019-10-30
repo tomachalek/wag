@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { Action, SEDispatcher, StatelessModel, IActionQueue } from 'kombo';
 import { Observable, Observer } from 'rxjs';
 import { concatMap } from 'rxjs/operators';
@@ -127,7 +126,7 @@ export class CollocModel extends StatelessModel<CollocModelState> {
                         newState.error = action.error.message;
 
                     } else {
-                        newState.data = Immutable.List<DataRow>(action.payload.data);
+                        newState.data = action.payload.data;
                         newState.heading =
                             [{label: 'Abs', ident: ''}]
                             .concat(

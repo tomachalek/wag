@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Immutable from 'immutable';
 import { WordSimWord } from '../api/abstract/wordSim';
 
 export enum OperationMode {
@@ -35,7 +34,7 @@ export interface WordSimModelState {
     error:string;
     maxResultItems:number;
     minScore:number;
-    data:Immutable.List<WordSimWord>;
+    data:Array<WordSimWord>;
     operationMode:OperationMode;
     corpus:string;
 }
