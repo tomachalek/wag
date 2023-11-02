@@ -31,7 +31,6 @@ import { DataItemWithWCI, Actions, DataLoadedPayload } from './common';
 import { callWithExtraVal } from '../../../api/util';
 import { QueryMatch, RecognizedQueries } from '../../../query/index';
 import { createInitialLinesData } from '../../../models/tiles/concordance';
-import { PriorityValueFactory } from '../../../priority';
 import { DataRow } from '../../../api/abstract/freqs';
 import { Actions as ConcActions } from '../concordance/actions';
 import { Backlink, BacklinkWithArgs, createAppBacklink } from '../../../page/tile';
@@ -64,7 +63,8 @@ export interface MultiWordTimeDistribModelArgs {
     tileId:number;
     waitForTile:number;
     waitForTilesTimeoutSecs:number;
-    apiFactory:PriorityValueFactory<[IConcordanceApi<{}>, TimeDistribApi]>;
+    concApi:IConcordanceApi<{}>;
+    api:TimeDistribApi;
     appServices:IAppServices;
     queryMatches:RecognizedQueries;
     queryDomain:string;
@@ -91,7 +91,9 @@ export interface DataFetchArgs {
  */
 export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistribModelState> {
 
-    private readonly apiFactory:PriorityValueFactory<[IConcordanceApi<{}>, TimeDistribApi]>;
+    private readonly concApi:IConcordanceApi<{}>;
+
+    private readonly api:TimeDistribApi;
 
     private readonly appServices:IAppServices;
 
@@ -106,10 +108,11 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
     private readonly backlink:Backlink;
 
     constructor({dispatcher, initState, tileId, waitForTile, waitForTilesTimeoutSecs,
-            apiFactory, appServices, queryMatches, backlink}:MultiWordTimeDistribModelArgs) {
+            concApi, api, appServices, queryMatches, backlink}:MultiWordTimeDistribModelArgs) {
         super(dispatcher, initState);
         this.tileId = tileId;
-        this.apiFactory = apiFactory;
+        this.concApi = concApi;
+        this.api = api;
         this.waitForTile = waitForTile;
         this.waitForTilesTimeoutSecs = waitForTilesTimeoutSecs;
         this.appServices = appServices;
@@ -279,14 +282,13 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
             (state, action) => {},
             (state, action, dispatch) => {
                 if (action.payload.tileId === this.tileId) {
-                    const [concApi,] = this.apiFactory.getHighestPriorityValue();
-                    concApi.getSourceDescription(
+                    this.concApi.getSourceDescription(
                         this.tileId,
                         this.appServices.getISO639UILang(),
                         action.payload.corpusId
 
-                    ).subscribe(
-                        (data) => {
+                    ).subscribe({
+                        next: data => {
                             dispatch({
                                 name: GlobalActions.GetSourceInfoDone.name,
                                 payload: {
@@ -295,7 +297,7 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
                                 }
                             });
                         },
-                        (err) => {
+                        error: err => {
                             console.error(err);
                             dispatch({
                                 name: GlobalActions.GetSourceInfoDone.name,
@@ -305,7 +307,7 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
                                 }
                             });
                         }
-                    );
+                    });
                 }
             }
         );
@@ -374,7 +376,7 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
                     origQuery: args.origQuery,
                     backlink: isWebDelegateApi(args.freqApi) ?
                             args.freqApi.createBackLink(args.freqApi.getBackLink(this.backlink), resp.corpName, args.concId) :
-                            args.freqApi.createBackLink(this.backlink, resp.corpName, args.concId) 
+                            args.freqApi.createBackLink(this.backlink, resp.corpName, args.concId)
                 };
             }),
             tap(
@@ -426,10 +428,9 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
         return rxOf<string[]>(...subcnames).pipe(
             mergeMap(
                 subcname => {
-                    const [concApi, freqApi] = this.apiFactory.getRandomValue();
                     return callWithExtraVal(
-                        concApi,
-                        concApi.stateToArgs(
+                        this.concApi,
+                        this.concApi.stateToArgs(
                             {
                                 corpname: state.corpname,
                                 otherCorpname: undefined,
@@ -457,8 +458,8 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
                             subcName: subcname,
                             concId: null,
                             queryId: queryId,
-                            origQuery: concApi.mkMatchQuery(lemmaVariant, state.posQueryGenerator),
-                            freqApi
+                            origQuery: this.concApi.mkMatchQuery(lemmaVariant, state.posQueryGenerator),
+                            freqApi: this.api
                         }
                     )
                 }
@@ -470,7 +471,6 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
         const resp = lemmaVariant.pipe(
             mergeMap(args => {
                  if (args.concId) {
-                    const [concApi, freqApi] = this.apiFactory.getRandomValue();
                     rxOf<[ConcResponse, DataFetchArgs]>([
                         {
                             query: '',
@@ -488,8 +488,8 @@ export class MultiWordTimeDistribModel extends StatelessModel<MultiWordTimeDistr
                             subcName: subcNames[0],
                             concId: args.concId,
                             queryId: args.queryId,
-                            origQuery: concApi.mkMatchQuery(args.lemma, state.posQueryGenerator),
-                            freqApi: freqApi
+                            origQuery: this.concApi.mkMatchQuery(args.lemma, state.posQueryGenerator),
+                            freqApi: this.api
                         }
                     ])
                  } else {

@@ -26,7 +26,6 @@ import { TimeDistTileConf } from './common';
 import { MultiWordTimeDistribModel } from './model';
 import { init as viewInit } from './view';
 import { findCurrQueryMatch } from '../../../models/query';
-import { PriorityValueFactory } from '../../../priority';
 import { createApiInstance as createConcApiInstance } from '../../../api/factory/concordance';
 import { IConcordanceApi } from '../../../api/abstract/concordance';
 import { TimeDistribApi } from '../../../api/abstract/timeDistrib';
@@ -74,39 +73,30 @@ export class MultiWordTimeDistTile implements ITileProvider {
         this.widthFract = widthFract;
         this.blockingTiles = waitForTiles;
 
-        const apiUrlList = typeof conf.apiURL === 'string' ? [conf.apiURL] : conf.apiURL;
-        const apiFactory = new PriorityValueFactory<[IConcordanceApi<{}>, TimeDistribApi]>(conf.apiPriority || List.repeat(() => 1, apiUrlList.length));
+        const apiUrl = Array.isArray(conf.apiURL) ? conf.apiURL[0] : conf.apiURL;
         const apiOptions = conf.apiType === CoreApiGroup.KONTEXT_API ?
             {authenticateURL: appServices.createActionUrl("/MultiWordTimeDistribTile/authenticate")} :
             {};
-        pipe(
-            apiUrlList,
-            List.forEach(
-                (url, i) => apiFactory.addInstance(
-                    i,
-                    [
-                        createConcApiInstance(
-                            cache,
-                            conf.apiType,
-                            url,
-                            appServices,
-                            apiOptions,
-                        ),
-                        createFreqApiInstance(
-                            conf.apiType,
-                            cache,
-                            url,
-                            appServices,
-                            {
-                                ...conf.customApiArgs,
-                                fcrit: conf.fcrit,
-                                flimit: '' + conf.flimit
-                            },
-                            apiOptions
-                        )
-                    ]
-                )
-            )
+        const concApi = conf.apiType === CoreApiGroup.MQUERY ?
+        null :
+        createConcApiInstance(
+            cache,
+            conf.apiType,
+            apiUrl,
+            appServices,
+            apiOptions,
+        );
+        const api = createFreqApiInstance(
+            conf.apiType,
+            cache,
+            apiUrl,
+            appServices,
+            {
+                ...conf.customApiArgs,
+                fcrit: conf.fcrit,
+                flimit: '' + conf.flimit
+            },
+            apiOptions,
         );
         this.model = new MultiWordTimeDistribModel({
             dispatcher: dispatcher,
@@ -138,7 +128,8 @@ export class MultiWordTimeDistTile implements ITileProvider {
             tileId: tileId,
             waitForTile: waitForTiles[0] || -1,
             waitForTilesTimeoutSecs,
-            apiFactory: apiFactory,
+            concApi,
+            api,
             appServices: appServices,
             queryMatches,
             queryDomain: domain1,

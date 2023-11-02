@@ -33,7 +33,6 @@ import { callWithExtraVal } from '../../../api/util';
 import { QueryMatch, RecognizedQueries } from '../../../query/index';
 import { Backlink, BacklinkWithArgs, createAppBacklink } from '../../../page/tile';
 import { TileWait } from '../../../models/tileSync';
-import { PriorityValueFactory } from '../../../priority';
 import { DataRow } from '../../../api/abstract/freqs';
 import { isWebDelegateApi } from '../../../types';
 import { MainPosAttrValues } from '../../../conf';
@@ -108,7 +107,8 @@ export interface TimeDistribModelArgs {
     tileId:number;
     waitForTile:number;
     waitForTilesTimeoutSecs:number;
-    apiFactory:PriorityValueFactory<[IConcordanceApi<{}>, TimeDistribApi]>;
+    concApi:IConcordanceApi<{}>;
+    api:TimeDistribApi;
     appServices:IAppServices;
     queryMatches:RecognizedQueries;
     backlink:Backlink;
@@ -135,7 +135,9 @@ function dateToSortNumber(s:string):number {
  */
 export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
 
-    private readonly apiFactory:PriorityValueFactory<[IConcordanceApi<{}>, TimeDistribApi]>;
+    private readonly concApi:IConcordanceApi<{}>;
+
+    private readonly api:TimeDistribApi;
 
     private readonly appServices:IAppServices;
 
@@ -158,7 +160,8 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
         tileId,
         waitForTile,
         waitForTilesTimeoutSecs,
-        apiFactory,
+        concApi,
+        api,
         appServices,
         queryMatches,
         queryDomain,
@@ -166,7 +169,8 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
     }:TimeDistribModelArgs) {
         super(dispatcher, initState);
         this.tileId = tileId;
-        this.apiFactory = apiFactory;
+        this.concApi = concApi;
+        this.api = api;
         this.waitForTile = waitForTile;
         this.waitForTilesTimeoutSecs = waitForTilesTimeoutSecs;
         this.appServices = appServices;
@@ -282,8 +286,7 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
             action => action.payload.tileId === this.tileId,
             (state, action) => state,
             (state, action, dispatch) => {
-                const [concApi,] = this.apiFactory.getHighestPriorityValue();
-                concApi.getSourceDescription(this.tileId, this.appServices.getISO639UILang(), action.payload['corpusId'])
+                this.concApi.getSourceDescription(this.tileId, this.appServices.getISO639UILang(), action.payload['corpusId'])
                 .subscribe({
                     next: (data) => {
                         dispatch({
@@ -464,10 +467,9 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
         return rxOf(...(subcnames.length > 0 ? subcnames : [undefined])).pipe(
             mergeMap(
                 subcname => {
-                    const [concApi, freqApi] = this.apiFactory.getRandomValue();
                     return callWithExtraVal(
-                        concApi,
-                        concApi.stateToArgs(
+                        this.concApi,
+                        this.concApi.stateToArgs(
                             {
                                 corpname: state.corpname,
                                 otherCorpname: undefined,
@@ -504,8 +506,8 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                             subcName: subcname,
                             wordMainLabel: queryMatch.pos.length > 0 ? queryMatch.lemma : queryMatch.word,
                             targetId: target,
-                            origQuery: concApi.mkMatchQuery(queryMatch, state.posQueryGenerator),
-                            freqApi
+                            origQuery: this.concApi.mkMatchQuery(queryMatch, state.posQueryGenerator),
+                            freqApi: this.api
                         }
                     )
                 }
@@ -540,14 +542,13 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                 ),
                 map(
                     ([lv, concId, corpusName, subcorpName]) => {
-                        const [,freqApi] = this.apiFactory.getRandomValue();
                         return {
                             concId: concId,
                             corpName: corpusName,
                             subcName: subcorpName,
                             wordMainLabel: lv.lemma,
                             targetId: target,
-                            freqApi
+                            freqApi: this.api
                         };
                     }
                 ),
@@ -567,8 +568,7 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
             const data = lemmaVariant.pipe(
                 mergeMap((lv:QueryMatch) => {
                     if (lv) {
-                        const [concApi, freqApi] = this.apiFactory.getRandomValue();
-                        if (concApi === null) {
+                        if (this.concApi === null) {
                             return rxOf<[ConcResponse, DataFetchArgsOwn]>([
                                 {
                                     query: `[lemma="${lv.lemma}"]`,
@@ -587,7 +587,7 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                                     wordMainLabel: '',
                                     targetId: target,
                                     origQuery: `[lemma="${lv.lemma}"]`,
-                                    freqApi
+                                    freqApi: this.api
                                 }
                             ]);
 
@@ -596,7 +596,6 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                         }
 
                     } else {
-                        const [,freqApi] = this.apiFactory.getRandomValue();
                         return rxOf<[ConcResponse, DataFetchArgsOwn]>([
                             {
                                 query: '',
@@ -615,7 +614,7 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                                 wordMainLabel: '',
                                 targetId: target,
                                 origQuery: '',
-                                freqApi
+                                freqApi: this.api
                             }
                         ]);
                     }
