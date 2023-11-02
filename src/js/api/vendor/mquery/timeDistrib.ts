@@ -18,7 +18,7 @@
 
 import { CustomArgs, TimeDistribApi, TimeDistribArgs, TimeDistribResponse } from '../../abstract/timeDistrib';
 import { Observable } from 'rxjs';
-import { IAsyncKeyValueStore, CorpusDetails } from '../../../types';
+import { IAsyncKeyValueStore, CorpusDetails, ResourceApi } from '../../../types';
 import { Backlink, BacklinkWithArgs } from '../../../page/tile';
 import { IApiServices } from '../../../appServices';
 import { Dict, List, pipe } from 'cnc-tskit';
@@ -40,7 +40,7 @@ export interface MqueryStreamData {
  * This is the main TimeDistrib API for KonText. It should work in any
  * case.
  */
-export class MQueryTimeDistribStreamApi implements TimeDistribApi {
+export class MQueryTimeDistribStreamApi implements TimeDistribApi, ResourceApi<TimeDistribArgs, TimeDistribResponse> {
 
     private readonly apiURL:string;
 
