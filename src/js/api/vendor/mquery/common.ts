@@ -52,8 +52,10 @@ export function escapeVal(v:string) {
  * b) lemma without a PoS information, e.g.: lemma='foo bar'
  * is transformed into: [lemma="foo"] [lemma="bar"]
  */
-export function mkLemmaMatchQuery(lvar:QueryMatch, generator:[string, string]):string {
-
+export function mkLemmaMatchQuery(lvar:QueryMatch, generator:[string, string]):string|null {
+    if (!lvar.lemma) {
+        return null;
+    }
     const fn = posQueryFactory(generator[1]);
     return pipe(
         lvar.lemma.split(' '),

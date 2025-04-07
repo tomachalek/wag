@@ -18,7 +18,7 @@
 import { SEDispatcher, StatelessModel, IActionDispatcher } from 'kombo';
 import { Observable, of as rxOf } from 'rxjs';
 import { catchError, concatMap, map, mergeMap, reduce, tap } from 'rxjs/operators';
-import { Dict, Maths, pipe, List } from 'cnc-tskit';
+import { Dict, Maths, pipe, List, tuple } from 'cnc-tskit';
 
 import { IAppServices } from '../../../appServices.js';
 import { Actions as GlobalActions } from '../../../models/actions.js';
@@ -89,8 +89,7 @@ interface DataFetchArgsOwn {
     subcName:string;
     wordMainLabel:string;
     targetId:SubchartID;
-    concId:string;
-    origQuery:string;
+    origQuery:string|null;
 }
 
 export interface TimeDistribModelArgs {
@@ -415,7 +414,6 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                     }));
                     let ans:DataLoadedPayload = {
                         tileId: this.tileId,
-                        concId: args.concId,
                         overwritePrevious: resp.overwritePrevious,
                         backlink: this.api.createBackLink(
                             state.backlinks[0],
@@ -479,26 +477,37 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
         lemmaVariant:Observable<QueryMatch>,
         dispatch:SEDispatcher
     ):void {
-
         const data = lemmaVariant.pipe(
-            mergeMap((lv:QueryMatch) => {
-                if (lv && lv.abs > 0) {
-                    const query = pipe(
-                        lv.lemma.split(' '),
-                        List.map(v => `[lemma="${v}"]`),
-                        v => v.join(' ')
-                    );
-                    return rxOf<DataFetchArgsOwn>(
-                        {
-                            concId: null,
-                            subcName: state.subcnames[0],
-                            wordMainLabel: lv.lemma,
-                            targetId: target,
-                            origQuery: query
-                        }
-                    );
+            mergeMap(
+                (lv:QueryMatch) => {
+                    console.log('lv: ', lv)
+                    if (lv && lv.abs > 0) {
+                        const query = pipe(
+                            lv.lemma.split(' '),
+                            List.map(v => `[lemma="${v}"]`),
+                            v => v.join(' ')
+                        );
+                        return rxOf<DataFetchArgsOwn>(
+                            {
+                                subcName: state.subcnames[0],
+                                wordMainLabel: lv.lemma,
+                                targetId: target,
+                                origQuery: query
+                            }
+                        );
+
+                    } else {
+                        return rxOf<DataFetchArgsOwn>(
+                            {
+                                subcName: state.subcnames[0],
+                                wordMainLabel: lv.lemma,
+                                targetId: target,
+                                origQuery: null
+                            }
+                        )
+                    }
                 }
-            }),
+            ),
             concatMap(
                 args => callWithExtraVal(
                     this.api,
@@ -507,7 +516,7 @@ export class TimeDistribModel extends StatelessModel<TimeDistribModelState> {
                     {
                         corpName: state.corpname,
                         q: mkLemmaMatchQuery(findCurrQueryMatch(this.queryMatches[0]), state.posQueryGenerator),
-                        subcorpName: undefined, // TOOD
+                        subcorpName: args.subcName,
                         fromYear: state.fromYear ? state.fromYear + '' : undefined,
                         toYear: state.toYear ? state.toYear + '' : undefined,
                         fcrit: state.fcrit,

@@ -72,17 +72,19 @@ export class SimilarFreqWordsFrodoAPI implements SimilarFreqDbAPI {
                         body: {},
                         method: HTTP.Method.GET,
                         tileId,
-                        url: urlJoin(
-                            this.apiURL,
-                            `dictionary/${args.domain}/similarARFWords/${args.word}`
-                        ) + '?' + encodeURLParameters(
-                            [['domain', args.domain],
-                            //['word', args.word],
-                            ['lemma', args.lemma],
-                            ['pos', args.pos.join(' ')],
-                            ['mainPosAttr', args.mainPosAttr],
-                            ['srchRange', args.srchRange]]
-                        )
+                        url: args.lemma ?
+                            urlJoin(
+                                this.apiURL,
+                                `dictionary/${args.domain}/similarARFWords/${args.word}`
+                            ) + '?' + encodeURLParameters(
+                                [['domain', args.domain],
+                                //['word', args.word],
+                                ['lemma', args.lemma],
+                                ['pos', args.pos.join(' ')],
+                                ['mainPosAttr', args.mainPosAttr],
+                                ['srchRange', args.srchRange]]
+                            ) :
+                            ''
                     }
                 ) :
                 ajax$<HTTPResponse>(
@@ -105,7 +107,7 @@ export class SimilarFreqWordsFrodoAPI implements SimilarFreqDbAPI {
         ).pipe(
             map(data => ({
                 result: pipe(
-                    data.matches,
+                    data ? data.matches : [],
                     List.map(
                         v => ({
                             lemma: v.lemma,

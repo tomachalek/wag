@@ -219,26 +219,16 @@ export class SummaryModel extends StatelessModel<SummaryModelState> {
             }
         }).pipe(
             concatMap(
-                (args) => testIsDictMatch(args.variant) ?
-                    this.api.call(this.tileId, true, {
-                        domain: args.lang,
-                        word: args.variant.word,
-                        lemma: args.variant.lemma,
-                        pos: state.mainPosAttr === 'pos' ?
-                            List.map(v => v.value, args.variant.pos) :
-                            List.map(v => v.value, args.variant.upos),
-                        mainPosAttr: state.mainPosAttr,
-                        srchRange: state.sfwRowRange
-                    }) :
-                    rxOf<{result:Array<SimilarFreqWord>}>({
-                        result: [{
-                            lemma: '?',
-                            pos: [],
-                            upos: [],
-                            ipm: 0,
-                            flevel: null
-                        }]
-                    })
+                (args) => this.api.call(this.tileId, true, {
+                    domain: args.lang,
+                    word: args.variant.word,
+                    lemma: args.variant.lemma,
+                    pos: state.mainPosAttr === 'pos' ?
+                        List.map(v => v.value, args.variant.pos) :
+                        List.map(v => v.value, args.variant.upos),
+                    mainPosAttr: state.mainPosAttr,
+                    srchRange: state.sfwRowRange
+                })
             ),
             map(
                 (data) => List.map(

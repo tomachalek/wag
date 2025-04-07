@@ -71,7 +71,6 @@ export interface TimeDistribItem {
 export interface TimeDistribResponse {
     corpName:string;
     subcorpName?:string;
-    concPersistenceID?:string;
     data:Array<TimeDistribItem>;
     overwritePrevious?:boolean;
 }
@@ -162,18 +161,23 @@ export class MQueryTimeDistribStreamApi implements ResourceApi<TimeDistribArgs, 
     chunks:Map<number, boolean>;
     */
     private callViaDataStream(tileId:number, multicastRequest:boolean, queryArgs:TimeDistribArgs):Observable<TimeDistribResponse> {
-        const args = this.prepareArgs(tileId, queryArgs, true);
+        const url = queryArgs.q ?
+            `${this.apiURL}/freqs-by-year-streamed/${queryArgs.corpName}?${this.prepareArgs(tileId, queryArgs, true)}` :
+            '';
         return this.apiServices.dataStreaming().registerTileRequest<MqueryStreamData>(
                 multicastRequest,
                 {
                     tileId,
                     method: HTTP.Method.GET,
-                    url: `${this.apiURL}/freqs-by-year-streamed/${queryArgs.corpName}?${args}`,
+                    url,
                     body: {},
                     contentType: 'application/json',
                     isEventSource: true
                 }
         ).pipe(
+            map(
+                resp => ({...resp, totalChunks: resp !== null ? resp.totalChunks : 0})
+            ),
             scan<MqueryStreamData, {curr:MqueryStreamData; chunks:Map<number, boolean>}>(
                 (acc, value) => {
                     acc.chunks.set(value.chunkNum, true)
