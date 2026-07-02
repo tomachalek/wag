@@ -101,32 +101,39 @@ export class GramatikatTile implements ITileProvider {
                         verbs: [
                             {
                                 conf: {
-                                    label: 'cislopad',
-                                    columnsProps: ['polarity', 'tense'],
+                                    label: appServices.translate(
+                                        'gramatikat__lab_cat_person_number'
+                                    ),
+                                    columnsProps: [null, 'person'],
                                     activeGroupedColVals: {},
                                     switchableGroupColVals: false,
-                                    columnsTags: [
-                                        'A-P',
-                                        'A-R',
-                                        'A-F',
-                                        'A-B',
-                                        'A-Q',
-                                        'N-P',
-                                        'N-R',
-                                        'N-F',
-                                        'N-B',
-                                        'N-Q',
-                                    ],
+                                    columnsTags: ['-1', '-2', '-3'],
                                     rowsProp: 'number',
                                     rowsTags: ['S', 'P', 'D'],
                                 },
                                 isActive: true,
                             },
+                            {
+                                conf: {
+                                    label: appServices.translate(
+                                        'gramatikat__lab_cat_mood'
+                                    ),
+                                    columnsProps: [null, 'mood'],
+                                    activeGroupedColVals: {},
+                                    switchableGroupColVals: false,
+                                    columnsTags: ['-I', '-A', '-M'],
+                                    rowsProp: null,
+                                    rowsTags: [],
+                                },
+                                isActive: false,
+                            },
                         ],
                         adjectives: [
                             {
                                 conf: {
-                                    label: 'degree-gender-case',
+                                    label: appServices.translate(
+                                        'gramatikat__lab_cat_degree_gender_case'
+                                    ),
                                     columnsProps: ['degree', 'gender'],
                                     activeGroupedColVals: { '1': true },
                                     switchableGroupColVals: true,
@@ -159,7 +166,9 @@ export class GramatikatTile implements ITileProvider {
                             },
                             {
                                 conf: {
-                                    label: 'rod',
+                                    label: appServices.translate(
+                                        'gramatikat__lab_cat_gender'
+                                    ),
                                     columnsProps: [null, 'gender'],
                                     activeGroupedColVals: { '1': true },
                                     switchableGroupColVals: false,
@@ -173,7 +182,9 @@ export class GramatikatTile implements ITileProvider {
                         nouns: [
                             {
                                 conf: {
-                                    label: 'cislopad',
+                                    label: appServices.translate(
+                                        'gramatikat__lab_cat_case_number'
+                                    ),
                                     columnsProps: ['gender', 'number'],
                                     activeGroupedColVals: {},
                                     switchableGroupColVals: false,

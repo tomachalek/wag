@@ -329,7 +329,7 @@ export function init(
                 tileId={props.tileId}
                 isBusy={state.isBusy}
                 error={state.error}
-                hasData={hasAllData}
+                hasData={true}
                 sourceIdent={{ corp: state.corpname }}
                 backlink={state.backlinks}
                 supportsTileReload={props.supportsReloadOnError}

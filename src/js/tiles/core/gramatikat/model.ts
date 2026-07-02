@@ -218,12 +218,12 @@ export function remapTagValueOrder(ourOrder: Array<GramatikatCatSet>): {
     const apiPropOrder = [
         'tense',
         'gender',
+        'person',
         'number',
         'case',
         'degree',
         'polarity',
         'mood',
-        'person',
         'voice',
         'aspect',
     ];
@@ -286,6 +286,10 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
                 if (hasErrors) {
                     state.message = appServices.translate(
                         'gramatikat__exact_pos_is_required_msg'
+                    );
+                } else if (!this.isMatchesTheSamePos(state.currQueryMatches)) {
+                    state.message = appServices.translate(
+                        'gramatikat__only_words_of_the_same_pos_can_be_cmp'
                     );
                 }
             });
@@ -540,8 +544,26 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
     private isSupportedQueryMatch(cm: QueryMatch): boolean {
         return (
             testIsDictMatch(cm) &&
+            Array.isArray(cm.pos) &&
+            !List.empty(cm.pos) &&
             wagPosToGramatikat(cm.pos[0].value) !== undefined
         );
+    }
+
+    private isMatchesTheSamePos(cms: Array<QueryMatch>): boolean {
+        const pos = List.foldl(
+            (acc, curr) => {
+                const k = List.map((v) => v.value, curr.pos).join('');
+                if (!Dict.hasKey(k, acc)) {
+                    acc[k] = 0;
+                }
+                acc[k]++;
+                return acc;
+            },
+            {} as { [k: string]: number },
+            cms
+        );
+        return Dict.size(pos) === 1;
     }
 
     private loadData(

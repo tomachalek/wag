@@ -25,7 +25,7 @@ import { List, pipe, tuple, Ident } from 'cnc-tskit';
 import { GramatikatFreq, GramatikatPoS, Summary } from '../api.js';
 import { gramPropTolabelGen } from '../labels.js';
 import {
-    attachColorIndexes,
+    attachGlobalColorIndexes,
     colIsSetAsHidden,
     HeatmapCell,
     newCell,
@@ -182,7 +182,7 @@ export function init(
                 }, columnTags)
             )
         );
-        const colorMapping = attachColorIndexes(data, 0);
+        const colorMapping = attachGlobalColorIndexes(data);
 
         const handleXGroupedVisibilityChng = (
             evt: React.ChangeEvent<HTMLInputElement>

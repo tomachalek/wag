@@ -28,7 +28,15 @@
         "gramatikat__degree_1": "1st degree",
         "gramatikat__degree_2": "2nd degree",
         "gramatikat__degree_3": "3rd degree",
-        "gramatikat__only_significant_items_sel": "only items below the 25th or above the 75th percentile"
+        "gramatikat__lab_cat_gender": "Gender",
+        "gramatikat__lab_cat_polarity_tense": "Polarity + Tense",
+        "gramatikat__lab_cat_degree_gender_case": "Degree + Gender + Case",
+        "gramatikat__lab_cat_gender_number": "Gender + Number",
+        "gramatikat__lab_cat_person_number": "Person + Number",
+        "gramatikat__lab_cat_mood": "Mood",
+        "gramatikat__lab_cat_case_number": "Case + Number",
+        "gramatikat__only_significant_items_sel": "only items below the 25th or above the 75th percentile",
+        "gramatikat__only_words_of_the_same_pos_can_be_cmp": "Only the words of the same Part of Speech can be compared in this tile"
     },
     "cs-CZ": {
         "gramatikat__main_label": "Gramatické kategorie",
@@ -59,6 +67,14 @@
         "gramatikat__degree_1": "1. stupeň",
         "gramatikat__degree_2": "2. stupeň",
         "gramatikat__degree_3": "3. stupeň",
-        "gramatikat__only_significant_items_sel": "pouze položky pod 25., nebo nad 75. percentilem"
+        "gramatikat__lab_cat_gender": "rod",
+        "gramatikat__lab_cat_polarity_tense": "negace a čas",
+        "gramatikat__lab_cat_degree_gender_case": "stupeň + rod + pád",
+        "gramatikat__lab_cat_gender_number": "rod + číslo",
+        "gramatikat__lab_cat_person_number": "osoba + číslo",
+        "gramatikat__lab_cat_mood": "způsob",
+        "gramatikat__lab_cat_case_number": "pád + číslo",
+        "gramatikat__only_significant_items_sel": "pouze položky pod 25., nebo nad 75. percentilem",
+        "gramatikat__only_words_of_the_same_pos_can_be_cmp": "Dlaždice zobrazuje srovnání slov pouze, mají-li slova stejný slovní druh."
     }
 }

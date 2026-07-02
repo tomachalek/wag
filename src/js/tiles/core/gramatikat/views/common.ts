@@ -74,6 +74,40 @@ export function saturationColorMapping(
     };
 }
 
+export function attachGlobalColorIndexes(
+    data: Array<Array<HeatmapCell>>
+): (v: number) => string {
+    const groupedData = pipe(
+        data,
+        List.flatMap((v) => v),
+        List.flatMap((v) => v.values),
+        List.groupBy((v) => `${v.v}`)
+    );
+
+    const dataOrderMapping = pipe(
+        groupedData,
+        List.sortedBy(([, v]) => v[0].v),
+        List.map(([, v], i) => tuple(i, v)),
+        List.flatMap(([orderIdx, values]) =>
+            List.map((v) => tuple(v.id, orderIdx), values)
+        ),
+        Dict.fromEntries()
+    );
+
+    List.forEach((row) => {
+        List.forEach((col) => {
+            List.forEach((cellPart) => {
+                if (cellPart.v === 0) {
+                    cellPart.sortedIdx = 0;
+                } else {
+                    cellPart.sortedIdx = dataOrderMapping[cellPart.id];
+                }
+            }, col.values);
+        }, row);
+    }, data);
+    return saturationColorMapping(0, List.size(groupedData), '#009ee0');
+}
+
 export function attachColorIndexes(
     data: Array<Array<HeatmapCell>>,
     cellPart: number
