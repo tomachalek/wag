@@ -40,7 +40,7 @@ import {
     testIsDictMatch,
     LemmatizationLevel,
 } from '../../../query/index.js';
-import { mergeMap, Observable, reduce, tap } from 'rxjs';
+import { map, mergeMap, Observable, reduce, tap } from 'rxjs';
 import { Dict, List, pipe, tuple } from 'cnc-tskit';
 import { Actions } from './actions.js';
 import { SystemMessageType } from '../../../types.js';
@@ -172,6 +172,14 @@ export interface GramatikatState {
         frames: Array<WordData>;
         currFrame: number;
     }>;
+    /**
+     * This atribute helps us to distinguish between situations
+     * where the tile has no data for searched words and there is
+     * no available tweaking and situations where e.g. by selecting
+     * proper pos for an ambiguous word, the result will likely be
+     * available.
+     */
+    requiresParamsClarification: boolean;
     advancedViewUncommonOnly: boolean;
     isBusy: boolean;
     backlinks: Array<Backlink>;
@@ -369,7 +377,6 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
                 if (!action.error) {
                     this.changeState((state) => {
                         state.isBusy = false;
-
                         const lemmaInfo = action.payload.resp.lemmaInfo;
                         if (isErrorLemmaInfo(lemmaInfo)) {
                             this.appServices.showMessage(
@@ -379,13 +386,11 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
                             return;
                         }
 
-                        if (
-                            !this.isValidLemmaInfo(lemmaInfo) ||
-                            !action.payload.resp.pos
-                        ) {
+                        if (action.payload.requiresPosClarification) {
                             state.message = this.appServices.translate(
                                 'gramatikat__exact_pos_is_required_msg'
                             );
+                            state.requiresParamsClarification = true;
                             return;
                         }
                         state.data[action.payload.queryIdx] = {
@@ -400,6 +405,7 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
                             currFrame: 0,
                         };
                     });
+                    console.log('model data: ', this.state.data);
                 } else {
                     this.changeState((state) => {
                         state.isBusy = false;
@@ -511,6 +517,13 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
         );
     }
 
+    hasNoData(state: GramatikatState): boolean {
+        return (
+            List.empty(state.data) ||
+            List.some((v) => v === undefined, [...state.data])
+        );
+    }
+
     private importFrameData(
         resp: LemmaProfileResponse,
         frameIdx: number
@@ -588,33 +601,52 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
         resp: Observable<[LemmaProfileResponse, number]>
     ): void {
         resp.pipe(
-            tap(([resp, queryIdx]) => {
+            map(([resp, queryIdx]) =>
+                tuple(
+                    resp,
+                    queryIdx,
+                    !this.isValidLemmaInfo(resp.lemmaInfo) ||
+                        resp.isAmbiguousPos
+                    // TODO !!!!
+                    // Here we need to distinguish:
+                    // 1. query match is set and supported
+                    // 2. query match is empty (= any PoS) and CAN be specified to supported PoS
+                    // 3. query match is set and unsupported
+                    // 4. query match is empty (= any PoS) and all the alternatives are unsupported PoS
+                    //
+                )
+            ),
+            tap(([resp, queryIdx, requiresPosClarification]) => {
                 this.dispatchSideEffect<typeof Actions.PartialTileDataLoaded>({
                     name: Actions.PartialTileDataLoaded.name,
                     payload: {
                         tileId: this.tileId,
+                        requiresPosClarification,
                         queryIdx,
                         resp,
                     },
                 });
             }),
             reduce(
-                (acc, [resp]) => {
+                (acc, [resp, , requiresPosClarification]) => {
                     return {
                         isEmpty:
                             acc.isEmpty ||
                             !this.isValidLemmaInfo(resp.lemmaInfo),
+                        requiresPosClarification:
+                            requiresPosClarification ||
+                            acc.requiresPosClarification,
                     };
                 },
-                { isEmpty: false }
+                { isEmpty: false, requiresPosClarification: false }
             )
         ).subscribe({
-            next: ({ isEmpty }) => {
+            next: ({ isEmpty, requiresPosClarification }) => {
                 this.dispatchSideEffect<typeof Actions.TileDataLoaded>({
                     name: Actions.TileDataLoaded.name,
                     payload: {
                         tileId: this.tileId,
-                        isEmpty,
+                        isEmpty: isEmpty && !requiresPosClarification,
                     },
                 });
             },
@@ -677,6 +709,9 @@ export class GramatikatModel extends TileStatefulModel<GramatikatState> {
                 }
             }
         ).pipe(
+            tap((v) => {
+                console.log('stuff: ', v);
+            }),
             mergeMap(([args, queryIdx]) =>
                 this.appServices.callAPI(
                     this.api,

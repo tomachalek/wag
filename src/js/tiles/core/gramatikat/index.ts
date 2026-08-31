@@ -90,6 +90,7 @@ export class GramatikatTile implements ITileProvider {
                 ),
                 data: [],
                 advancedViewUncommonOnly: true,
+                requiresParamsClarification: false,
                 error: undefined,
                 message: undefined,
                 words: List.map(

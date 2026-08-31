@@ -320,8 +320,8 @@ export class GramatikatAPI
                             },
                             pos: args?.pos,
                             isAmbiguousPos: !args?.pos,
-                            catMapping: args.catComb,
-                            frameCatMapping: args.frameCatComb,
+                            catMapping: args?.catComb,
+                            frameCatMapping: args?.frameCatComb,
                             code: HTTP.Status.InternalServerError,
                             error: resp?.error,
                         };

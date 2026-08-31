@@ -367,10 +367,8 @@ export function init(
         // TODO - currently we only work with the first dataset item (i.e. no frameCatSet)
 
         const anyCommonInfoData = List.find((v) => v !== undefined, state.data);
-        const hasAllData =
-            !List.empty(state.data) &&
-            !List.some((v) => v === undefined, [...state.data]) &&
-            !state.message;
+        const hasAllData = !model.hasNoData(state);
+        console.log('Gramatikat tile, hasAllData: ', hasAllData);
         const posInfo = !List.empty(state.data)
             ? anyCommonInfoData?.frames[anyCommonInfoData?.currFrame].posData
             : undefined;
@@ -378,10 +376,6 @@ export function init(
             ? anyCommonInfoData?.frames[anyCommonInfoData?.currFrame]
             : undefined;
 
-        const hasAmbigQueries = List.some(
-            (x) => !x.pos || x.pos.length === 0,
-            state.currQueryMatches
-        );
         return (
             <globalComponents.TileWrapper
                 tileId={props.tileId}
@@ -394,7 +388,7 @@ export function init(
                 isSubtileContainer={props.isSubtileContainer}
                 issueReportingUrl={props.issueReportingUrl}
                 errorSubtileContainerLabel={props.tileLabel}
-                showDisambigLinkOnNoData={hasAmbigQueries}
+                showDisambigLinkOnNoData={state.requiresParamsClarification}
             >
                 <globalComponents.Subtile
                     tileId={props.tileId}

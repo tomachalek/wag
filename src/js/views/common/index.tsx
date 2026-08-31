@@ -594,7 +594,10 @@ export function init(
                 },
             });
         };
-        if (props.isBusy && !props.hasData) {
+        if (
+            props.isBusy &&
+            (!props.hasData || props.showDisambigLinkOnNoData)
+        ) {
             return (
                 <S.TileWrapper>
                     <div className="wag-tile-body content">
@@ -603,6 +606,9 @@ export function init(
                                 hasData={false}
                                 isBusy={true}
                                 tileId={props.tileId}
+                                showDisambigLinkOnNoData={
+                                    props.showDisambigLinkOnNoData
+                                }
                             >
                                 <p>
                                     <AjaxLoader htmlClass="centered" />
@@ -683,7 +689,7 @@ export function init(
                     <div
                         className={`wag-tile-body content${props.hasData ? '' : ' empty'}`}
                     >
-                        {props.hasData
+                        {props.hasData && !props.showDisambigLinkOnNoData
                             ? props.children
                             : wrapInSubtileIfTrue(
                                   {
@@ -1335,6 +1341,10 @@ export function init(
         showDisambigLinkOnNoData,
         setMaxHeight,
     }) => {
+        console.log(
+            'subtile showDisambigLinkOnNoData: ',
+            showDisambigLinkOnNoData
+        );
         const htmlClasses = ['wag-tile-body'];
         if (!hasData && !isBusy) {
             htmlClasses.push('empty');

@@ -26,7 +26,9 @@ export interface PartialDataPayload extends SubqueryPayload {
 }
 
 export class Actions {
-    static PartialTileDataLoaded: Action<PartialDataPayload> = {
+    static PartialTileDataLoaded: Action<
+        PartialDataPayload & { requiresPosClarification: boolean }
+    > = {
         name: GlobalActions.TilePartialDataLoaded.name,
     };
 

@@ -1539,6 +1539,7 @@ export function init(
                 </div>
             </header>
         );
+
         return (
             <S.TileContainer
                 id={mkTileSectionId(props.tile.tileId)}
@@ -1835,7 +1836,7 @@ export function init(
                                             />
                                             <p>
                                                 {ut.translate(
-                                                    'global__not_enought_data_for_group'
+                                                    'global__not_enough_data_for_group'
                                                 )}
                                             </p>
                                         </div>
